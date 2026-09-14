@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GerenciaKids Lite</title>
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>GerenciaKids Lite</h1>
+    <p>Sistema de Gestão Escolar</p>
+
+    <nav>
+      <a href="#geral">Visão Geral</a>
+      <a href="#alunos">Alunos</a>
+      <a href="#turmas">Turmas</a>
+      <a href="#responsaveis">Responsáveis</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 id="titulo-pagina">Selecione um módulo</h2>
+
+    <table id="tabela-dados" style="display: none; width: 100%;">
+      <thead id="tabela-cabecalho">
+      </thead>
+      <tbody id="tabela-corpo">
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    const API_URL = 'http://localhost:3000';
+
+    async function carregarTela() {
+      const telaAtual = window.location.hash.replace('#', '') || 'geral'; // Agora "geral" é a tela padrão
+
+      const titulo = document.getElementById('titulo-pagina');
+      const thead = document.getElementById('tabela-cabecalho');
+      const tbody = document.getElementById('tabela-corpo');
+      const tabela = document.getElementById('tabela-dados');
+
+      tabela.style.display = 'table';
+      tbody.innerHTML = '<tr><td colspan="6">Consultando banco de dados...</td></tr>';
+
+      try {
+        const endpoint = (telaAtual === 'geral') ? 'alunos' : telaAtual;
+
+        const resposta = await fetch(`${API_URL}/${endpoint}`);
+        const dados = await resposta.json();
+
+        tbody.innerHTML = '';
+
+        if (dados.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6">Nenhum registro encontrado no banco.</td></tr>';
+          return;
+        }
+
+        if (telaAtual === 'geral') {
+          titulo.innerText = 'Visão Geral';
+          thead.innerHTML = '<tr><th>Aluno</th><th>Nascimento</th><th>Turma</th><th>Turno</th><th>Responsável</th><th>Contato (Resp.)</th></tr>';
+
+          dados.forEach(item => {
+            const dataBr = new Date(item.data_nascimento).toLocaleDateString('pt-BR');
+            tbody.innerHTML += `
+              <tr>
+                <td><strong>${item.nome}</strong></td>
+                <td>${dataBr}</td>
+                <td>${item.turma.nome}</td>
+                <td>${item.turma.turno}</td>
+                <td>${item.responsavel.nome}</td>
+                <td>${item.responsavel.telefone}</td>
+              </tr>
+            `;
+          });
+        }
+        else if (telaAtual === 'alunos') {
+          titulo.innerText = 'Apenas Alunos';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Nascimento</th></tr>';
+
+          dados.forEach(aluno => {
+            const dataBr = new Date(aluno.data_nascimento).toLocaleDateString('pt-BR');
+            tbody.innerHTML += `<tr><td>${aluno.id}</td><td><strong>${aluno.nome}</strong></td><td>${dataBr}</td></tr>`;
+          });
+        }
+        else if (telaAtual === 'turmas') {
+          titulo.innerText = 'Turmas Registradas';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Turno</th><th>Ano Letivo</th></tr>';
+
+          dados.forEach(turma => {
+            tbody.innerHTML += `<tr><td>${turma.id}</td><td><strong>${turma.nome}</strong></td><td>${turma.turno}</td><td>${turma.ano_letivo}</td></tr>`;
+          });
+        }
+        else if (telaAtual === 'responsaveis') {
+          titulo.innerText = 'Responsáveis Cadastrados';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Telefone</th></tr>';
+
+          dados.forEach(resp => {
+            tbody.innerHTML += `<tr><td>${resp.id}</td><td><strong>${resp.nome}</strong></td><td>${resp.cpf}</td><td>${resp.telefone}</td></tr>`;
+          });
+        }
+      } catch (erro) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:red;">deu erro</td></tr>';
+      }
+    }
+
+    window.addEventListener('hashchange', carregarTela);
+    window.addEventListener('load', carregarTela);
+  </script>
+
+</body>
+
+</html>
