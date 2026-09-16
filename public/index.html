@@ -25,6 +25,8 @@
   <main>
     <h2 id="titulo-pagina">Selecione um módulo</h2>
 
+    <div id="area-formulario" style="display: none;"></div>
+
     <table id="tabela-dados" style="display: none; width: 100%;">
       <thead id="tabela-cabecalho">
       </thead>
@@ -36,8 +38,167 @@
   <script>
     const API_URL = 'http://localhost:3000';
 
+    async function excluirRegistro(endpoint, id) {
+      if (confirm(`Tem certeza que deseja excluir este registro?`)) {
+        try {
+          const resposta = await fetch(`${API_URL}/${endpoint}/${id}`, {
+            method: 'DELETE'
+          });
+
+          if (resposta.ok) {
+            alert('Registro excluído');
+            carregarTela();
+          } else {
+            alert('Erro ao excluir');
+          }
+        } catch (erro) {
+          alert('Erro de conexão com a API.');
+        }
+      }
+    }
+
+    async function carregarFormularioEdicao(entidade, id) {
+      const titulo = document.getElementById('titulo-pagina');
+      const tabela = document.getElementById('tabela-dados');
+      const areaFormulario = document.getElementById('area-formulario');
+
+      tabela.style.display = 'none';
+      areaFormulario.style.display = 'block';
+      areaFormulario.innerHTML = '<p>Carregando dados para edição...</p>';
+      titulo.innerText = `Editar ${entidade.slice(0, -1)} #${id}`;
+
+      try {
+        const resposta = await fetch(`${API_URL}/${entidade}/${id}`);
+        const dados = await resposta.json();
+
+        let camposHtml = '';
+
+        if (entidade === 'turmas') {
+          camposHtml = `
+            <p>
+              <label>Nome da Turma:</label>
+              <input type="text" id="campo-nome" value="${dados.nome}" required>
+            </p>
+            <p>
+              <label>Turno:</label>
+              <input type="text" id="campo-turno" value="${dados.turno}" required>
+            </p>
+            <p>
+              <label>Ano Letivo:</label>
+              <input type="text" id="campo-ano_letivo" value="${dados.ano_letivo}" required>
+            </p>
+          `;
+        } else if (entidade === 'responsaveis') {
+          camposHtml = `
+            <p>
+              <label>Nome do Responsável:</label>
+              <input type="text" id="campo-nome" value="${dados.nome}" required>
+            </p>
+            <p>
+              <label>CPF:</label>
+              <input type="text" id="campo-cpf" value="${dados.cpf}" required>
+            </p>
+            <p>
+              <label>Telefone:</label>
+              <input type="text" id="campo-telefone" value="${dados.telefone}" required>
+            </p>
+          `;
+        } else if (entidade === 'alunos') {
+          const dataFormatada = dados.data_nascimento ? dados.data_nascimento.slice(0, 10) : '';
+          camposHtml = `
+            <p>
+              <label>Nome do Aluno:</label>
+              <input type="text" id="campo-nome" value="${dados.nome}" required>
+            </p>
+            <p>
+              <label>Data de Nascimento:</label>
+              <input type="date" id="campo-data_nascimento" value="${dataFormatada}" required>
+            </p>
+            <p>
+              <label>ID da Turma:</label>
+              <input type="number" id="campo-turmaId" value="${dados.turmaId || ''}" required>
+            </p>
+            <p>
+              <label>ID do Responsável:</label>
+              <input type="number" id="campo-responsavelId" value="${dados.responsavelId || ''}" required>
+            </p>
+          `;
+        }
+
+        areaFormulario.innerHTML = `
+          <form id="form-edicao">
+            ${camposHtml}
+            <button type="submit">Salvar Alterações</button>
+            <a href="#${entidade}">Cancelar</a>
+          </form>
+        `;
+
+        document.getElementById('form-edicao').onsubmit = async function (e) {
+          e.preventDefault();
+
+          let corpoRequisicao = {};
+
+          if (entidade === 'turmas') {
+            corpoRequisicao = {
+              nome: document.getElementById('campo-nome').value,
+              turno: document.getElementById('campo-turno').value,
+              ano_letivo: document.getElementById('campo-ano_letivo').value
+            };
+          } else if (entidade === 'responsaveis') {
+            corpoRequisicao = {
+              nome: document.getElementById('campo-nome').value,
+              cpf: document.getElementById('campo-cpf').value,
+              telefone: document.getElementById('campo-telefone').value
+            };
+          } else if (entidade === 'alunos') {
+            corpoRequisicao = {
+              nome: document.getElementById('campo-nome').value,
+              data_nascimento: document.getElementById('campo-data_nascimento').value,
+              turmaId: Number(document.getElementById('campo-turmaId').value),
+              responsavelId: Number(document.getElementById('campo-responsavelId').value)
+            };
+          }
+
+          try {
+            const respostaUpdate = await fetch(`${API_URL}/${entidade}/${id}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(corpoRequisicao)
+            });
+
+            if (respostaUpdate.ok) {
+              alert('Atualizado com sucesso!');
+              window.location.hash = '#' + entidade;
+            } else {
+              alert('Erro ao atualizar registro.');
+            }
+          } catch (erro) {
+            alert('Erro de conexão ao salvar.');
+          }
+        };
+
+      } catch (erro) {
+        areaFormulario.innerHTML = '<p style="color:red;">Erro ao carregar os dados para edição.</p>';
+      }
+    }
+
     async function carregarTela() {
-      const telaAtual = window.location.hash.replace('#', '') || 'geral'; // Agora "geral" é a tela padrão
+      const hashCompleta = window.location.hash;
+
+      if (hashCompleta.startsWith('#editar-')) {
+        const partes = hashCompleta.replace('#', '').split('-');
+        const entidade = partes[1];
+        const id = partes[2];
+        carregarFormularioEdicao(entidade, id);
+        return;
+      }
+
+      const areaFormulario = document.getElementById('area-formulario');
+      areaFormulario.style.display = 'none';
+
+      const telaAtual = hashCompleta.replace('#', '') || 'geral';
 
       const titulo = document.getElementById('titulo-pagina');
       const thead = document.getElementById('tabela-cabecalho');
@@ -45,66 +206,94 @@
       const tabela = document.getElementById('tabela-dados');
 
       tabela.style.display = 'table';
-      tbody.innerHTML = '<tr><td colspan="6">Consultando banco de dados...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7">Consultando banco de dados...</td></tr>';
 
       try {
         const endpoint = (telaAtual === 'geral') ? 'alunos' : telaAtual;
-
         const resposta = await fetch(`${API_URL}/${endpoint}`);
         const dados = await resposta.json();
 
         tbody.innerHTML = '';
 
         if (dados.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6">Nenhum registro encontrado no banco.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7">Nenhum registro encontrado no banco.</td></tr>';
           return;
         }
 
         if (telaAtual === 'geral') {
           titulo.innerText = 'Visão Geral';
-          thead.innerHTML = '<tr><th>Aluno</th><th>Nascimento</th><th>Turma</th><th>Turno</th><th>Responsável</th><th>Contato (Resp.)</th></tr>';
+          thead.innerHTML = '<tr><th>Aluno</th><th>Nascimento</th><th>Turma</th><th>Turno</th><th>Responsável</th><th>Contato</th></tr>';
 
           dados.forEach(item => {
-            const dataBr = new Date(item.data_nascimento).toLocaleDateString('pt-BR');
+            const dataBr = item.data_nascimento ? new Date(item.data_nascimento).toLocaleDateString('pt-BR') : '-';
             tbody.innerHTML += `
               <tr>
                 <td><strong>${item.nome}</strong></td>
                 <td>${dataBr}</td>
-                <td>${item.turma.nome}</td>
-                <td>${item.turma.turno}</td>
-                <td>${item.responsavel.nome}</td>
-                <td>${item.responsavel.telefone}</td>
+                <td>${item.turma ? item.turma.nome : '-'}</td>
+                <td>${item.turma ? item.turma.turno : '-'}</td>
+                <td>${item.responsavel ? item.responsavel.nome : '-'}</td>
+                <td>${item.responsavel ? item.responsavel.telefone : '-'}</td>
               </tr>
             `;
           });
         }
         else if (telaAtual === 'alunos') {
           titulo.innerText = 'Apenas Alunos';
-          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Nascimento</th></tr>';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Nascimento</th><th>Ações</th></tr>';
 
           dados.forEach(aluno => {
-            const dataBr = new Date(aluno.data_nascimento).toLocaleDateString('pt-BR');
-            tbody.innerHTML += `<tr><td>${aluno.id}</td><td><strong>${aluno.nome}</strong></td><td>${dataBr}</td></tr>`;
+            const dataBr = aluno.data_nascimento ? new Date(aluno.data_nascimento).toLocaleDateString('pt-BR') : '-';
+            tbody.innerHTML += `
+              <tr>
+                <td>${aluno.id}</td>
+                <td><strong>${aluno.nome}</strong></td>
+                <td>${dataBr}</td>
+                <td>
+                  <a href="#editar-alunos-${aluno.id}">Editar</a> | 
+                  <a href="#" onclick="excluirRegistro('alunos', ${aluno.id})" style="color: red;">Excluir</a>
+                </td>
+              </tr>`;
           });
         }
         else if (telaAtual === 'turmas') {
           titulo.innerText = 'Turmas Registradas';
-          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Turno</th><th>Ano Letivo</th></tr>';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Turno</th><th>Ano Letivo</th><th>Ações</th></tr>';
 
           dados.forEach(turma => {
-            tbody.innerHTML += `<tr><td>${turma.id}</td><td><strong>${turma.nome}</strong></td><td>${turma.turno}</td><td>${turma.ano_letivo}</td></tr>`;
+            tbody.innerHTML += `
+              <tr>
+                <td>${turma.id}</td>
+                <td><strong>${turma.nome}</strong></td>
+                <td>${turma.turno}</td>
+                <td>${turma.ano_letivo}</td>
+                <td>
+                  <a href="#editar-turmas-${turma.id}">Editar</a> | 
+                  <a href="#" onclick="excluirRegistro('turmas', ${turma.id})" style="color: red;">Excluir</a>
+                </td>
+              </tr>`;
           });
         }
         else if (telaAtual === 'responsaveis') {
           titulo.innerText = 'Responsáveis Cadastrados';
-          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Telefone</th></tr>';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Ações</th></tr>';
 
           dados.forEach(resp => {
-            tbody.innerHTML += `<tr><td>${resp.id}</td><td><strong>${resp.nome}</strong></td><td>${resp.cpf}</td><td>${resp.telefone}</td></tr>`;
+            tbody.innerHTML += `
+              <tr>
+                <td>${resp.id}</td>
+                <td><strong>${resp.nome}</strong></td>
+                <td>${resp.cpf}</td>
+                <td>${resp.telefone}</td>
+                <td>
+                  <a href="#editar-responsaveis-${resp.id}">Editar</a> | 
+                  <a href="#" onclick="excluirRegistro('responsaveis', ${resp.id})" style="color: red;">Excluir</a>
+                </td>
+              </tr>`;
           });
         }
       } catch (erro) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color:red;">deu erro</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="color:red;">deu erro</td></tr>';
       }
     }
 
