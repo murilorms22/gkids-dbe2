@@ -38,23 +38,223 @@
   <script>
     const API_URL = 'http://localhost:3000';
 
-    async function excluirRegistro(endpoint, id) {
-      if (confirm(`Tem certeza que deseja excluir este registro?`)) {
+    async function carregarTelaVisualizacao(entidade, id) {
+      const titulo = document.getElementById('titulo-pagina');
+      const tabela = document.getElementById('tabela-dados');
+      const areaFormulario = document.getElementById('area-formulario');
+
+      tabela.style.display = 'none';
+      areaFormulario.style.display = 'block';
+      areaFormulario.innerHTML = '<p>Carregando detalhes...</p>';
+      titulo.innerText = `Detalhes do ${entidade.slice(0, -1)} #${id}`;
+
+      try {
+        const resposta = await fetch(`${API_URL}/${entidade}/${id}`);
+        const dados = await resposta.json();
+
+        let detalhesHtml = '';
+
+        if (entidade === 'turmas') {
+          detalhesHtml = `
+            <p><strong>ID:</strong> ${dados.id}</p>
+            <p><strong>Nome da Turma:</strong> ${dados.nome}</p>
+            <p><strong>Turno:</strong> ${dados.turno}</p>
+            <p><strong>Ano Letivo:</strong> ${dados.ano_letivo}</p>
+          `;
+        } else if (entidade === 'responsaveis') {
+          detalhesHtml = `
+            <p><strong>ID:</strong> ${dados.id}</p>
+            <p><strong>Nome:</strong> ${dados.nome}</p>
+            <p><strong>CPF:</strong> ${dados.cpf}</p>
+            <p><strong>Contato:</strong> ${dados.telefone}</p>
+          `;
+        } else if (entidade === 'alunos') {
+          const dataBr = dados.data_nascimento ? new Date(dados.data_nascimento).toLocaleDateString('pt-BR') : '-';
+          const turmaNome = dados.turma ? `${dados.turma.nome} (${dados.turma.turno})` : '-';
+          const responsavelNome = dados.responsavel ? `${dados.responsavel.nome} - Contato: ${dados.responsavel.telefone}` : '-';
+
+          detalhesHtml = `
+            <p><strong>ID:</strong> ${dados.id}</p>
+            <p><strong>Nome do Aluno:</strong> ${dados.nome}</p>
+            <p><strong>Data de Nascimento:</strong> ${dataBr}</p>
+            <p><strong>Turma:</strong> ${turmaNome}</p>
+            <p><strong>Responsável:</strong> ${responsavelNome}</p>
+          `;
+        }
+
+        areaFormulario.innerHTML = `
+          <div>
+            ${detalhesHtml}
+            <br>
+            <a href="#${entidade}">Voltar para a lista</a>
+          </div>
+        `;
+      } catch (erro) {
+        areaFormulario.innerHTML = '<p style="color:red;">Erro ao carregar os detalhes.</p>';
+      }
+    }
+
+    async function carregarTelaExclusao(entidade, id) {
+      const titulo = document.getElementById('titulo-pagina');
+      const tabela = document.getElementById('tabela-dados');
+      const areaFormulario = document.getElementById('area-formulario');
+
+      tabela.style.display = 'none';
+      areaFormulario.style.display = 'block';
+      areaFormulario.innerHTML = '<p>Carregando dados para exclusão...</p>';
+      titulo.innerText = `Excluir ${entidade.slice(0, -1)} #${id}`;
+
+      try {
+        const resposta = await fetch(`${API_URL}/${entidade}/${id}`);
+        const dados = await resposta.json();
+
+        const nomeRegistro = dados.nome || `#${dados.id}`;
+
+        areaFormulario.innerHTML = `
+          <div>
+            <p>Você está prestes a excluir o registro: <strong>${nomeRegistro}</strong></p>
+            <p>Esta ação não poderá ser desfeita.</p>
+            <button id="btn-confirmar-exclusao" style="background-color: red; color: white;">Confirmar Exclusão</button>
+            <a href="#${entidade}">Cancelar</a>
+          </div>
+        `;
+
+        document.getElementById('btn-confirmar-exclusao').onclick = async function () {
+          try {
+            const respostaDelete = await fetch(`${API_URL}/${entidade}/${id}`, {
+              method: 'DELETE'
+            });
+
+            if (respostaDelete.ok) {
+              alert('Excluído com sucesso');
+              window.location.hash = '#' + entidade;
+            } else {
+              alert('Erro ao excluir registro.');
+            }
+          } catch (erro) {
+            alert('Erro de conexão ao excluir.');
+          }
+        };
+      } catch (erro) {
+        areaFormulario.innerHTML = '<p style="color:red;">Erro ao carregar os dados para exclusão.</p>';
+      }
+    }
+
+    async function carregarFormularioCriacao(entidade) {
+      const titulo = document.getElementById('titulo-pagina');
+      const tabela = document.getElementById('tabela-dados');
+      const areaFormulario = document.getElementById('area-formulario');
+
+      tabela.style.display = 'none';
+      areaFormulario.style.display = 'block';
+      titulo.innerText = `Cadastrar ${entidade.slice(0, -1)}`;
+
+      let camposHtml = '';
+
+      if (entidade === 'turmas') {
+        camposHtml = `
+          <p>
+            <label>Nome da Turma:</label>
+            <input type="text" id="campo-nome" required>
+          </p>
+          <p>
+            <label>Turno:</label>
+            <input type="text" id="campo-turno" required>
+          </p>
+          <p>
+            <label>Ano Letivo:</label>
+            <input type="text" id="campo-ano_letivo" required>
+          </p>
+        `;
+      } else if (entidade === 'responsaveis') {
+        camposHtml = `
+          <p>
+            <label>Nome do Responsável:</label>
+            <input type="text" id="campo-nome" required>
+          </p>
+          <p>
+            <label>CPF:</label>
+            <input type="text" id="campo-cpf" required>
+          </p>
+          <p>
+            <label>Contato:</label>
+            <input type="text" id="campo-telefone" required>
+          </p>
+        `;
+      } else if (entidade === 'alunos') {
+        camposHtml = `
+          <p>
+            <label>Nome do Aluno:</label>
+            <input type="text" id="campo-nome" required>
+          </p>
+          <p>
+            <label>Data de Nascimento:</label>
+            <input type="date" id="campo-data_nascimento" required>
+          </p>
+          <p>
+            <label>ID da Turma:</label>
+            <input type="number" id="campo-turmaId" required>
+          </p>
+          <p>
+            <label>ID do Responsável:</label>
+            <input type="number" id="campo-responsavelId" required>
+          </p>
+        `;
+      }
+
+      areaFormulario.innerHTML = `
+        <form id="form-criacao">
+          ${camposHtml}
+          <button type="submit">Salvar</button>
+          <a href="#${entidade}">Cancelar</a>
+        </form>
+      `;
+
+      document.getElementById('form-criacao').onsubmit = async function (e) {
+        e.preventDefault();
+
+        let corpoRequisicao = {};
+
+        if (entidade === 'turmas') {
+          corpoRequisicao = {
+            nome: document.getElementById('campo-nome').value,
+            turno: document.getElementById('campo-turno').value,
+            ano_letivo: document.getElementById('campo-ano_letivo').value
+          };
+        } else if (entidade === 'responsaveis') {
+          corpoRequisicao = {
+            nome: document.getElementById('campo-nome').value,
+            cpf: document.getElementById('campo-cpf').value,
+            telefone: document.getElementById('campo-telefone').value
+          };
+        } else if (entidade === 'alunos') {
+          corpoRequisicao = {
+            nome: document.getElementById('campo-nome').value,
+            data_nascimento: document.getElementById('campo-data_nascimento').value,
+            turmaId: Number(document.getElementById('campo-turmaId').value),
+            responsavelId: Number(document.getElementById('campo-responsavelId').value)
+          };
+        }
+
         try {
-          const resposta = await fetch(`${API_URL}/${endpoint}/${id}`, {
-            method: 'DELETE'
+          const respostaCriacao = await fetch(`${API_URL}/${entidade}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(corpoRequisicao)
           });
 
-          if (resposta.ok) {
-            alert('Registro excluído');
-            carregarTela();
+          if (respostaCriacao.ok) {
+            alert('Cadastrado com sucesso!');
+            window.location.hash = '#' + entidade;
           } else {
-            alert('Erro ao excluir');
+            alert('Erro ao cadastrar registro.');
           }
         } catch (erro) {
-          alert('Erro de conexão com a API.');
+          alert('Erro de conexão ao salvar.');
         }
-      }
+      };
     }
 
     async function carregarFormularioEdicao(entidade, id) {
@@ -99,7 +299,7 @@
               <input type="text" id="campo-cpf" value="${dados.cpf}" required>
             </p>
             <p>
-              <label>Telefone:</label>
+              <label>Contato:</label>
               <input type="text" id="campo-telefone" value="${dados.telefone}" required>
             </p>
           `;
@@ -195,6 +395,29 @@
         return;
       }
 
+      if (hashCompleta.startsWith('#criar-')) {
+        const partes = hashCompleta.replace('#', '').split('-');
+        const entidade = partes[1];
+        carregarFormularioCriacao(entidade);
+        return;
+      }
+
+      if (hashCompleta.startsWith('#excluir-')) {
+        const partes = hashCompleta.replace('#', '').split('-');
+        const entidade = partes[1];
+        const id = partes[2];
+        carregarTelaExclusao(entidade, id);
+        return;
+      }
+
+      if (hashCompleta.startsWith('#ver-')) {
+        const partes = hashCompleta.replace('#', '').split('-');
+        const entidade = partes[1];
+        const id = partes[2];
+        carregarTelaVisualizacao(entidade, id);
+        return;
+      }
+
       const areaFormulario = document.getElementById('area-formulario');
       areaFormulario.style.display = 'none';
 
@@ -215,14 +438,14 @@
 
         tbody.innerHTML = '';
 
-        if (dados.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7">Nenhum registro encontrado no banco.</td></tr>';
-          return;
-        }
-
         if (telaAtual === 'geral') {
           titulo.innerText = 'Visão Geral';
           thead.innerHTML = '<tr><th>Aluno</th><th>Nascimento</th><th>Turma</th><th>Turno</th><th>Responsável</th><th>Contato</th></tr>';
+
+          if (dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6">Nenhum registro encontrado no banco.</td></tr>';
+            return;
+          }
 
           dados.forEach(item => {
             const dataBr = item.data_nascimento ? new Date(item.data_nascimento).toLocaleDateString('pt-BR') : '-';
@@ -240,54 +463,72 @@
         }
         else if (telaAtual === 'alunos') {
           titulo.innerText = 'Apenas Alunos';
+          titulo.innerHTML += '<br><a href="#criar-alunos">+ Novo Registro</a><br><br>';
           thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Nascimento</th><th>Ações</th></tr>';
+
+          if (dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4">Nenhum registro encontrado no banco.</td></tr>';
+            return;
+          }
 
           dados.forEach(aluno => {
             const dataBr = aluno.data_nascimento ? new Date(aluno.data_nascimento).toLocaleDateString('pt-BR') : '-';
             tbody.innerHTML += `
               <tr>
-                <td>${aluno.id}</td>
-                <td><strong>${aluno.nome}</strong></td>
+                <td><a href="#ver-alunos-${aluno.id}">${aluno.id}</a></td>
+                <td><a href="#ver-alunos-${aluno.id}"><strong>${aluno.nome}</strong></a></td>
                 <td>${dataBr}</td>
                 <td>
                   <a href="#editar-alunos-${aluno.id}">Editar</a> | 
-                  <a href="#" onclick="excluirRegistro('alunos', ${aluno.id})" style="color: red;">Excluir</a>
+                  <a href="#excluir-alunos-${aluno.id}" style="color: red;">Excluir</a>
                 </td>
               </tr>`;
           });
         }
         else if (telaAtual === 'turmas') {
           titulo.innerText = 'Turmas Registradas';
+          titulo.innerHTML += '<br><a href="#criar-turmas">+ Novo Registro</a><br><br>';
           thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>Turno</th><th>Ano Letivo</th><th>Ações</th></tr>';
+
+          if (dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">Nenhum registro encontrado no banco.</td></tr>';
+            return;
+          }
 
           dados.forEach(turma => {
             tbody.innerHTML += `
               <tr>
-                <td>${turma.id}</td>
-                <td><strong>${turma.nome}</strong></td>
+                <td><a href="#ver-turmas-${turma.id}">${turma.id}</a></td>
+                <td><a href="#ver-turmas-${turma.id}"><strong>${turma.nome}</strong></a></td>
                 <td>${turma.turno}</td>
                 <td>${turma.ano_letivo}</td>
                 <td>
                   <a href="#editar-turmas-${turma.id}">Editar</a> | 
-                  <a href="#" onclick="excluirRegistro('turmas', ${turma.id})" style="color: red;">Excluir</a>
+                  <a href="#excluir-turmas-${turma.id}" style="color: red;">Excluir</a>
                 </td>
               </tr>`;
           });
         }
         else if (telaAtual === 'responsaveis') {
           titulo.innerText = 'Responsáveis Cadastrados';
-          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Ações</th></tr>';
+          titulo.innerHTML += '<br><a href="#criar-responsaveis">+ Novo Registro</a><br><br>';
+          thead.innerHTML = '<tr><th>ID</th><th>Nome</th><th>CPF</th><th>Contato</th><th>Ações</th></tr>';
+
+          if (dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">Nenhum registro encontrado no banco.</td></tr>';
+            return;
+          }
 
           dados.forEach(resp => {
             tbody.innerHTML += `
               <tr>
-                <td>${resp.id}</td>
-                <td><strong>${resp.nome}</strong></td>
+                <td><a href="#ver-responsaveis-${resp.id}">${resp.id}</a></td>
+                <td><a href="#ver-responsaveis-${resp.id}"><strong>${resp.nome}</strong></a></td>
                 <td>${resp.cpf}</td>
                 <td>${resp.telefone}</td>
                 <td>
                   <a href="#editar-responsaveis-${resp.id}">Editar</a> | 
-                  <a href="#" onclick="excluirRegistro('responsaveis', ${resp.id})" style="color: red;">Excluir</a>
+                  <a href="#excluir-responsaveis-${resp.id}" style="color: red;">Excluir</a>
                 </td>
               </tr>`;
           });
