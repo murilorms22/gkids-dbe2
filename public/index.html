@@ -50,7 +50,8 @@
 
       try {
         const resposta = await fetch(`${API_URL}/${entidade}/${id}`);
-        const dados = await resposta.json();
+        const json = await resposta.json();
+        const dados = json.data;
 
         let detalhesHtml = '';
 
@@ -106,7 +107,8 @@
 
       try {
         const resposta = await fetch(`${API_URL}/${entidade}/${id}`);
-        const dados = await resposta.json();
+        const json = await resposta.json();
+        const dados = json.data;
 
         const nomeRegistro = dados.nome || `#${dados.id}`;
 
@@ -269,7 +271,8 @@
 
       try {
         const resposta = await fetch(`${API_URL}/${entidade}/${id}`);
-        const dados = await resposta.json();
+        const json = await resposta.json();
+        const dados = json.data;
 
         let camposHtml = '';
 
@@ -434,7 +437,8 @@
       try {
         const endpoint = (telaAtual === 'geral') ? 'alunos' : telaAtual;
         const resposta = await fetch(`${API_URL}/${endpoint}`);
-        const dados = await resposta.json();
+        const json = await resposta.json();
+        const dados = json.data;
 
         tbody.innerHTML = '';
 
