@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { AlunosService } from './alunos.service';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
+import { AlunoByIdPipe } from './aluno-by-id.pipe';
 
 @Controller('alunos')
 export class AlunosController {
@@ -18,17 +19,17 @@ export class AlunosController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.alunosService.findOne(id);
+  findOne(@Param('id', AlunoByIdPipe) aluno: any) {
+    return aluno;
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateAlunoDto: UpdateAlunoDto) {
-    return this.alunosService.update(id, updateAlunoDto);
+  update(@Param('id', AlunoByIdPipe) aluno: any, @Body() updateAlunoDto: UpdateAlunoDto) {
+    return this.alunosService.update(aluno.id, updateAlunoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.alunosService.remove(id);
+  remove(@Param('id', AlunoByIdPipe) aluno: any) {
+    return this.alunosService.remove(aluno.id);
   }
 }

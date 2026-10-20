@@ -5,7 +5,7 @@ import { UpdateResponsavelDto } from './dto/update-responsavel.dto';
 
 @Injectable()
 export class ResponsaveisService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createResponsavelDto: CreateResponsavelDto) {
     return this.prisma.responsavel.create({
