@@ -36,3 +36,29 @@ model Aluno {
   turma Turma @relation(fields: [turmaId], references: [id])
   responsavel Responsavel @relation(fields: [responsavelId], references: [id])
 }
+
+enum Role {
+  RESPONSAVEL
+  PROFESSOR
+  DIRECAO
+  ADMIN
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      Role     @default(RESPONSAVEL)
+  tokens    Token[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Token {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(500)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
