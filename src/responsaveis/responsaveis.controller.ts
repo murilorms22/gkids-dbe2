@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req, ForbiddenException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Req, ForbiddenException, UseGuards } from '@nestjs/common';
 import { ResponsaveisService } from './responsaveis.service';
 import { CreateResponsavelDto } from './dto/create-responsavel.dto';
 import { UpdateResponsavelDto } from './dto/update-responsavel.dto';
@@ -30,13 +30,16 @@ export class ResponsaveisController {
   update(
     @Param('id', ResponsavelByIdPipe) responsavel: any, 
     @Body() updateResponsavelDto: UpdateResponsavelDto,
-    @Req() req: any
   ) {
-    // req.user.sub eh o id de quem logou; responsavel.id eh o id que tá sendo alterado
-    if (req.user.sub !== responsavel.id && req.user.role !== 'ADMIN') {
-      throw new ForbiddenException('Acesso negado: você só pode editar o seu próprio perfil.');
-    }
-    
+    return this.responsaveisService.update(responsavel.id, updateResponsavelDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':id')
+  updatePut(
+    @Param('id', ResponsavelByIdPipe) responsavel: any, 
+    @Body() updateResponsavelDto: UpdateResponsavelDto,
+  ) {
     return this.responsaveisService.update(responsavel.id, updateResponsavelDto);
   }
 

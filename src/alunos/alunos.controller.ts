@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, UseGuards } from '@nestjs/common';
 import { AlunosService } from './alunos.service';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
 import { AlunoByIdPipe } from './aluno-by-id.pipe';
-import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('alunos')
@@ -21,7 +20,6 @@ export class AlunosController {
     return this.alunosService.findAll();
   }
 
-  
   @Get(':id')
   findOne(@Param('id', AlunoByIdPipe) aluno: any) {
     return aluno;
@@ -30,6 +28,12 @@ export class AlunosController {
   @UseGuards(AuthGuard)
   @Patch(':id')
   update(@Param('id', AlunoByIdPipe) aluno: any, @Body() updateAlunoDto: UpdateAlunoDto) {
+    return this.alunosService.update(aluno.id, updateAlunoDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':id')
+  updatePut(@Param('id', AlunoByIdPipe) aluno: any, @Body() updateAlunoDto: UpdateAlunoDto) {
     return this.alunosService.update(aluno.id, updateAlunoDto);
   }
 

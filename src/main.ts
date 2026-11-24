@@ -8,7 +8,7 @@ async function bootstrap() {
 
   app.enableCors();
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   app.useGlobalInterceptors(new TransformInterceptor());
 

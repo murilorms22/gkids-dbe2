@@ -1,19 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, UseGuards } from '@nestjs/common';
 import { TurmasService } from './turmas.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
 import { TurmaByIdPipe } from './turma-by-id.pipe';
-import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { PoliciesGuard } from '../auth/policies/policies.guard';
+import { CheckPolicies } from '../auth/policies/policy.decorator';
+import { Action } from '../auth/ability/ability.factory';
 
 @Controller('turmas')
 export class TurmasController {
   constructor(private readonly turmasService: TurmasService) { }
 
-  @Roles('DIRECAO')
-  @UseGuards(AuthGuard)
+  @Roles('DIRECAO', 'GERENTE')
+  @CheckPolicies({ action: Action.CREATE, resource: 'Turma' })
+  @UseGuards(AuthGuard, RolesGuard, PoliciesGuard)
   @Post()
   create(@Body() createTurmaDto: CreateTurmaDto) {
     return this.turmasService.create(createTurmaDto);
@@ -29,15 +32,25 @@ export class TurmasController {
     return turma;
   }
 
-  @Roles('DIRECAO')
-  @UseGuards(AuthGuard)
+  @Roles('DIRECAO', 'GERENTE')
+  @CheckPolicies({ action: Action.UPDATE, resource: 'Turma' })
+  @UseGuards(AuthGuard, RolesGuard, PoliciesGuard)
   @Patch(':id')
   update(@Param('id', TurmaByIdPipe) turma: any, @Body() updateTurmaDto: UpdateTurmaDto) {
     return this.turmasService.update(turma.id, updateTurmaDto);
   }
 
-  @Roles('DIRECAO')
-  @UseGuards(AuthGuard)
+  @Roles('DIRECAO', 'GERENTE')
+  @CheckPolicies({ action: Action.UPDATE, resource: 'Turma' })
+  @UseGuards(AuthGuard, RolesGuard, PoliciesGuard)
+  @Put(':id')
+  updatePut(@Param('id', TurmaByIdPipe) turma: any, @Body() updateTurmaDto: UpdateTurmaDto) {
+    return this.turmasService.update(turma.id, updateTurmaDto);
+  }
+
+  @Roles('DIRECAO', 'GERENTE')
+  @CheckPolicies({ action: Action.DELETE, resource: 'Turma' })
+  @UseGuards(AuthGuard, RolesGuard, PoliciesGuard)
   @Delete(':id')
   remove(@Param('id', TurmaByIdPipe) turma: any) {
     return this.turmasService.remove(turma.id);

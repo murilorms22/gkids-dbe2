@@ -30,6 +30,7 @@ export class AuthGuard implements CanActivate {
 
       // guarda as informaçoes do usuario na req para usar depois
       request['user'] = payload;
+      request['token'] = token;
       
     } catch {
       throw new UnauthorizedException('Token inválido ou expirado');

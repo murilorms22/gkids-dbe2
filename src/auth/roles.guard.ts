@@ -21,8 +21,9 @@ export class RolesGuard implements CanActivate {
       return true; 
     }
 
-    // verifica se a role do usuario bate com a exigencia da pagina
-    const temPermissao = papeisExigidos.includes(user?.role);
+    // trata equivalencia entre direcao e gerente
+    const roleUsuario = user?.role === 'GERENTE' ? 'DIRECAO' : (user?.role === 'DIRECAO' ? 'GERENTE' : user?.role);
+    const temPermissao = papeisExigidos.includes(user?.role) || papeisExigidos.includes(roleUsuario);
     
     if (!temPermissao) {
       throw new ForbiddenException('Acesso negado: seu nível de permissão é insuficiente.');

@@ -38,8 +38,20 @@ export class AuthService {
         return { access_token: token };
     }
 
-    // deleta/revoga o token
-    async logout(tokenStr: string) {
+    // deleta/revoga o token ou todos os tokens do usuario
+    async logout(tokenStr: string, revogarTodos: boolean = false) {
+        if (revogarTodos) {
+            const tokenDb = await this.prisma.token.findUnique({
+                where: { token: tokenStr },
+            });
+            if (tokenDb) {
+                await this.prisma.token.deleteMany({
+                    where: { userId: tokenDb.userId },
+                });
+                return { message: 'Todos os tokens revogados' };
+            }
+        }
+
         await this.prisma.token.deleteMany({
             where: { token: tokenStr },
         });

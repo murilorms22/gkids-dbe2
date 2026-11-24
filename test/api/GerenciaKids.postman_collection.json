@@ -1,126 +1,594 @@
 {
   "info": {
-    "_postman_id": "93be22a9-8db2-40e8-b3a7-45d9205ddf24",
-    "name": "GerenciaKids",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "59096659"
+    "_postman_id": "a93be22a-8db2-40e8-b3a7-45d9205ddf24",
+    "name": "GerenciaKids API",
+    "description": "Coleção de testes da API GerenciaKids com variáveis e regras de perfil (Admin, Direção e Responsável).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "item": [
     {
-      "name": "Mostrar todos (INDEX)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:3000/alunos",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "3000",
-          "path": [
-            "alunos"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Mostrar um (SHOW)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:3000/alunos/2",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "3000",
-          "path": [
-            "alunos",
-            "2"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Inserindo aluno novo",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"nome\": \"Joãozinhoaa\",\r\n  \"data_nascimento\": \"2020-05-10\",\r\n  \"turmaId\": 1,\r\n  \"responsavelId\": 1\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+      "name": "1. Autenticação",
+      "item": [
+        {
+          "name": "Login - Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "    pm.collectionVariables.set('token', res.access_token);",
+                  "    console.log('Token do Admin salvo na variável token');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
             }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:3000/alunos",
-          "protocol": "http",
-          "host": [
-            "localhost"
           ],
-          "port": "3000",
-          "path": [
-            "alunos"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Atualizar registro",
-      "request": {
-        "method": "PATCH",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"nome\": \"Joãozinho Atualizado\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@ifsul.edu.br\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
             }
-          }
+          },
+          "response": []
         },
-        "url": {
-          "raw": "http://localhost:3000/alunos/7",
-          "protocol": "http",
-          "host": [
-            "localhost"
+        {
+          "name": "Login - Direção (Papel de Gerente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "    pm.collectionVariables.set('token', res.access_token);",
+                  "    console.log('Token da Direção salvo na variável token');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
           ],
-          "port": "3000",
-          "path": [
-            "alunos",
-            "7"
-          ]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"direcao@ifsul.edu.br\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Responsável (Usuário Comum)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "    pm.collectionVariables.set('token', res.access_token);",
+                  "    console.log('Token do Responsável salvo na variável token');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"responsavel@ifsul.edu.br\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout (Revoga Token Atual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout (Revoga Todos os Tokens)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout?all=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"],
+              "query": [
+                {
+                  "key": "all",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     },
     {
-      "name": "New request",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:3000/alunos/8",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "3000",
-          "path": [
-            "alunos",
-            "8"
-          ]
+      "name": "2. Usuários (Tabela User)",
+      "item": [
+        {
+          "name": "Listar Usuários (Apenas Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Próprio Perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Novo Usuário\",\n  \"email\": \"novo@ifsul.edu.br\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Próprio Perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Nome Atualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Próprio Perfil",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "3"]
+            }
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
+    },
+    {
+      "name": "3. Turmas (Recurso Irrestrito da Direção e Admin)",
+      "item": [
+        {
+          "name": "Listar Turmas (Pública)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Turma (Pública)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Turma (Direção ou Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Jardim 2\",\n  \"turno\": \"Tarde\",\n  \"ano_letivo\": \"2026\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turmas",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Turma (Direção ou Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Jardim 2 Atualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Turma (Direção ou Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Alunos",
+      "item": [
+        {
+          "name": "Listar Alunos (Pública)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Aluno (Pública)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Aluno (Protegida)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mariazinha\",\n  \"data_nascimento\": \"2021-04-12\",\n  \"turmaId\": 1,\n  \"responsavelId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alunos",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Aluno (Protegida)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mariazinha Atualizada\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alunos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Aluno (Protegida)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/alunos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Responsáveis",
+      "item": [
+        {
+          "name": "Listar Responsáveis (Pública)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Responsável (Pública)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Responsável (Protegida)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Ana Paula Souza\",\n  \"cpf\": \"98765432100\",\n  \"telefone\": \"51988888888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Responsável (Protegida)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Ana Paula Atualizada\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Responsável (Protegida)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

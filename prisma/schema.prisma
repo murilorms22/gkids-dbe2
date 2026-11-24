@@ -38,8 +38,10 @@ model Aluno {
 }
 
 enum Role {
+  USER
   RESPONSAVEL
   PROFESSOR
+  GERENTE
   DIRECAO
   ADMIN
 }
@@ -49,7 +51,7 @@ model User {
   nome      String
   email     String   @unique
   senha     String
-  role      Role     @default(RESPONSAVEL)
+  role      Role     @default(USER)
   tokens    Token[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
