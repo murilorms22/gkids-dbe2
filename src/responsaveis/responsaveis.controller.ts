@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Req, ForbiddenException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Query, ParseIntPipe, Req, ForbiddenException, UseGuards } from '@nestjs/common';
 import { ResponsaveisService } from './responsaveis.service';
 import { CreateResponsavelDto } from './dto/create-responsavel.dto';
 import { UpdateResponsavelDto } from './dto/update-responsavel.dto';
@@ -21,8 +21,19 @@ export class ResponsaveisController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ResponsavelByIdPipe) responsavel: any) {
+  findOne(
+    @Param('id', ResponsavelByIdPipe) responsavel: any,
+    @Query('incluirAlunos') incluirAlunos?: string,
+  ) {
+    if (incluirAlunos === 'true') {
+      return this.responsaveisService.findOne(responsavel.id, true);
+    }
     return responsavel;
+  }
+
+  @Get(':id/alunos')
+  findAlunos(@Param('id', ParseIntPipe) id: number) {
+    return this.responsaveisService.findAlunos(id);
   }
 
   @UseGuards(AuthGuard)

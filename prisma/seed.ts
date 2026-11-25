@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { fakerPT_BR } from '@faker-js/faker';
+import { criarDadosTurma } from './factories/turma.factory';
+import { criarDadosResponsavel } from './factories/responsavel.factory';
+import { criarDadosAluno } from './factories/aluno.factory';
 
 const prisma = new PrismaClient();
 
@@ -62,7 +66,63 @@ async function main() {
         },
     });
 
-    console.log('✅ Seed finalizado: Dados de teste criados!');
+    const totalTurmas = await prisma.turma.count();
+    let novasTurmasCriadas = 0;
+    let novosResponsaveisCriados = 0;
+    let novosAlunosCriados = 0;
+
+    if (totalTurmas <= 1) {
+        // Cria mais 4 turmas (totalizando 5 turmas no banco)
+        for (let i = 0; i < 4; i++) {
+            await prisma.turma.create({
+                data: criarDadosTurma(),
+            });
+            novasTurmasCriadas++;
+        }
+
+        // Cria mais 10 responsaveis garantindo CPF unico no banco
+        for (let i = 0; i < 10; i++) {
+            let dadosResponsavel = criarDadosResponsavel();
+            let cpfExistente = await prisma.responsavel.findUnique({
+                where: { cpf: dadosResponsavel.cpf },
+            });
+            while (cpfExistente) {
+                dadosResponsavel = criarDadosResponsavel();
+                cpfExistente = await prisma.responsavel.findUnique({
+                    where: { cpf: dadosResponsavel.cpf },
+                });
+            }
+            await prisma.responsavel.create({
+                data: dadosResponsavel,
+            });
+            novosResponsaveisCriados++;
+        }
+
+        // Busca turmas e responsaveis existentes e cria mais 20 alunos vinculados aleatoriamente
+        const turmasDisponiveis = await prisma.turma.findMany();
+        const responsaveisDisponiveis = await prisma.responsavel.findMany();
+
+        for (let i = 0; i < 20; i++) {
+            const turmaSorteada = fakerPT_BR.helpers.arrayElement(turmasDisponiveis);
+            const responsavelSorteado = fakerPT_BR.helpers.arrayElement(responsaveisDisponiveis);
+            await prisma.aluno.create({
+                data: criarDadosAluno(turmaSorteada.id, responsavelSorteado.id),
+            });
+            novosAlunosCriados++;
+        }
+    }
+
+    const [countUsers, countTurmas, countResponsaveis, countAlunos] = await Promise.all([
+        prisma.user.count(),
+        prisma.turma.count(),
+        prisma.responsavel.count(),
+        prisma.aluno.count(),
+    ]);
+
+    console.log(
+        `✅ Seed finalizado: +${novasTurmasCriadas} turmas, +${novosResponsaveisCriados} responsáveis e +${novosAlunosCriados} alunos gerados via Faker! ` +
+        `(Total no banco: ${countUsers} usuários, ${countTurmas} turmas, ${countResponsaveis} responsáveis, ${countAlunos} alunos)`,
+    );
 }
 
 main()

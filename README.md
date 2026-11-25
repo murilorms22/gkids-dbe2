@@ -1,114 +1,152 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# GerenciaKids API (NestJS + Prisma + MySQL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API RESTful para gestão escolar infantil (**GerenciaKids**), desenvolvida com **NestJS 12**, **Prisma ORM 6**, **MySQL 8** e **Docker**. O projeto implementa autenticação JWT com revogação de tokens em banco, controle de acesso baseado em papéis e políticas (RBAC / Ability), mapeamento de relacionamentos com **Eager Loading** e **Lazy Loading via Fluent API** (sem problema de queries N+1), **Factories com `@faker-js/faker`** e **filtros parametrizados diretamente no MySQL**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Stack Tecnológica
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Node.js** + **TypeScript**
+- **NestJS 12** (`@nestjs/common`, `@nestjs/core`, `@nestjs/jwt`)
+- **Prisma ORM 6** (`@prisma/client`, `prisma`)
+- **MySQL 8.0** + **phpMyAdmin** (via Docker Compose)
+- **Validação e Transformação:** `class-validator` e `class-transformer` (`ValidationPipe` global com `transform: true` e `whitelist: true`)
+- **Geração de Dados (Seed & Factories):** `@faker-js/faker` (`fakerPT_BR`)
 
-## Project setup
+---
 
-```bash
-$ npm install
+## Pré-requisitos
+
+- **Node.js** (v20 ou superior recomendado) e **npm**
+- **Docker** e **Docker Compose** ativos na máquina
+
+---
+
+## Passo a Passo de Instalação e Execução
+
+1. **Acesse a pasta do projeto e instale as dependências:**
+   ```bash
+   cd gerenciakids-lite
+   npm install
+   ```
+
+2. **Configure as variáveis de ambiente:**
+   Copie o arquivo `.env.example` para `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *(No Windows PowerShell: `Copy-Item .env.example .env`)*
+
+3. **Suba o banco de dados MySQL e o phpMyAdmin com Docker:**
+   ```bash
+   docker compose up -d
+   ```
+   - MySQL: `localhost:3306` (banco `gerenciakids_lite`, usuário `root`, senha `root`)
+   - phpMyAdmin: `http://localhost:8080`
+
+4. **Execute as migrations do Prisma:**
+   ```bash
+   npx prisma migrate deploy
+   # ou em desenvolvimento:
+   npx prisma migrate dev
+   ```
+
+5. **Popule o banco de dados com o Seed e as Factories (`@faker-js/faker`):**
+   ```bash
+   npx prisma db seed
+   # ou:
+   npm run db:seed
+   ```
+
+6. **Inicie o servidor NestJS:**
+   ```bash
+   npm run start:dev
+   ```
+   A API estará disponível em `http://localhost:3000`. O script já garante a inicialização dos containers Docker em segundo plano antes de subir o servidor NestJS. Todas as respostas são envelopadas pelo `TransformInterceptor` no formato `{ "data": ... }`.
+
+7. **Interface Web para Visualização (Live Server):**
+   O projeto inclui uma interface web interativa em `public/index.html` para consultar, navegar e visualizar os registros de **Alunos**, **Turmas** e **Responsáveis** diretamente no navegador:
+   - No **VS Code**, recomenda-se utilizar a extensão **Live Server** (*Ritwick Dey*).
+   - Clique com o botão direito no arquivo `public/index.html` e selecione **"Open with Live Server"** (ou clique no botão **"Go Live"** na barra inferior do VS Code).
+   - A página abrirá no navegador (tipicamente em `http://127.0.0.1:5500/public/index.html`), conectada e consumindo a API em tempo real na porta `3000`.
+
+---
+
+## Seed e Factories (`@faker-js/faker`)
+
+O arquivo `prisma/seed.ts` é **idempotente** e utiliza as factories localizadas em `prisma/factories/` com localização brasileira (`fakerPT_BR`):
+
+- **`prisma/factories/turma.factory.ts` (`criarDadosTurma`):** gera turmas de educação infantil (`Berçário I/II`, `Maternal I/II`, `Pré I/II` combinados com `A`, `B`, `Estrelinhas`, `Girassol`, `Arco-Íris`), turnos (`Manhã`, `Tarde`, `Integral`) e `ano_letivo: '2026'`.
+- **`prisma/factories/responsavel.factory.ts` (`criarDadosResponsavel`):** gera responsáveis com nome completo, telefone celular e CPF único de 11 dígitos sem colisão.
+- **`prisma/factories/aluno.factory.ts` (`criarDadosAluno`):** gera alunos com nome completo e data de nascimento realista entre 1 e 5 anos de idade, vinculados às turmas e responsáveis existentes.
+
+Além dos registros gerados via Faker (**+4 turmas**, **+10 responsáveis** e **+20 alunos**), o seed garante via `upsert` os registros fixos de `id: 1` (`Turma` "Maternal 1", `Responsavel` "Carlos da Silva" e `Aluno` "Pedrinho da Silva") e os **5 usuários padrão** abaixo:
+
+| Nome | E-mail | Senha | Papel (`Role`) | Permissões Principais |
+| :--- | :--- | :--- | :--- | :--- |
+| **Admin** | `admin@ifsul.edu.br` | `123456` | `ADMIN` | Acesso total a todos os recursos (`manage: all`) e listagem de usuários |
+| **Direção Escolar** | `direcao@ifsul.edu.br` | `123456` | `DIRECAO` | Acesso irrestrito ao CRUD de `Turma` (`manage: Turma`) e leitura geral |
+| **Gerente (Direção)** | `gerente@ifsul.edu.br` | `123456` | `GERENTE` | Equivalente à Direção (`manage: Turma`) |
+| **Responsável** | `responsavel@ifsul.edu.br` | `123456` | `RESPONSAVEL` | Leitura pública de turmas e operação autenticada em alunos/responsáveis |
+| **Comum** | `user@ifsul.edu.br` | `123456` | `RESPONSAVEL` | Conta adicional de usuário comum/responsável |
+
+---
+
+## Resumo das Rotas da API
+
+### 1. Autenticação (`/auth`) e Usuários (`/users`)
+| Método | Rota | Autenticação / Papel | Descrição |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/auth/login` | Pública | Autentica por `email` e `senha` (`LoginDto`) e retorna `access_token` |
+| `POST` | `/auth/logout` | `AuthGuard` | Revoga o token atual (ou todos os tokens do usuário com `?all=true`) |
+| `POST` | `/auth/logout-all` | `AuthGuard` | Revoga todos os tokens ativos do usuário autenticado |
+| `GET` | `/users` | `AuthGuard` (`ADMIN`) | Lista todos os usuários cadastrados |
+| `GET` | `/users/:id` | `AuthGuard` (Próprio ou `ADMIN`) | Exibe os dados do perfil do usuário |
+| `POST` | `/users` | `AuthGuard` | Cria um novo usuário (`CreateUserDto`) |
+| `PUT` / `PATCH` | `/users/:id` | `AuthGuard` (Próprio ou `ADMIN`) | Atualiza dados do próprio usuário (ou qualquer usuário se `ADMIN`) |
+| `DELETE` | `/users/:id` | `AuthGuard` (Próprio ou `ADMIN`) | Remove o usuário |
+
+### 2. Turmas (`/turmas`)
+| Método | Rota | Estratégia Prisma / Recurso | Descrição |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/turmas` | **Contagem (`_count`) + Filtros MySQL** | Lista turmas com `_count.alunos`. Aceita filtros `?nome=&turno=&ano_letivo=` |
+| `GET` | `/turmas/:id` | **Eager Loading Condicional** | Retorna a turma. Com `?incluirAlunos=true`, inclui `alunos: true` via `include` |
+| `GET` | `/turmas/:id/alunos` | **Lazy Loading (Fluent API)** | Busca apenas os alunos da turma via `findUnique({ where: { id } }).alunos()` |
+| `POST` | `/turmas` | `AuthGuard` + `DIRECAO`/`GERENTE`/`ADMIN` | Cria uma nova turma (`CreateTurmaDto`) |
+| `PUT` / `PATCH` | `/turmas/:id` | `AuthGuard` + `DIRECAO`/`GERENTE`/`ADMIN` | Atualiza uma turma existente (`UpdateTurmaDto`) |
+| `DELETE` | `/turmas/:id` | **Tratamento `P2003` (`409 Conflict`)** | Remove a turma (retorna `409 Conflict` se houver alunos vinculados) |
+
+### 3. Responsáveis (`/responsaveis`)
+| Método | Rota | Estratégia Prisma / Recurso | Descrição |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/responsaveis` | Listagem simples | Lista todos os responsáveis cadastrados |
+| `GET` | `/responsaveis/:id` | **Eager Loading Condicional** | Retorna o responsável. Com `?incluirAlunos=true`, carrega `include: { alunos: true }` |
+| `GET` | `/responsaveis/:id/alunos` | **Lazy Loading (Fluent API)** | Carrega os alunos sob demanda via `findUnique({ where: { id } }).alunos()` |
+| `POST` | `/responsaveis` | `AuthGuard` + **Tratamento `P2002` (`409`)** | Cria responsável validando CPF único |
+| `PUT` / `PATCH` | `/responsaveis/:id` | `AuthGuard` + **Tratamento `P2002` (`409`)** | Atualiza responsável |
+| `DELETE` | `/responsaveis/:id` | `AuthGuard` + **Tratamento `P2003` (`409`)** | Remove responsável (retorna `409 Conflict` se possuir alunos vinculados) |
+
+### 4. Alunos (`/alunos`)
+| Método | Rota | Estratégia Prisma / Recurso | Descrição |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/alunos` | **Eager Loading + Filtros MySQL** | Lista alunos com `include: { turma: true, responsavel: true }`. Aceita `?nome=&turmaId=&responsavelId=` |
+| `GET` | `/alunos/:id` | **Eager Loading (`include`)** | Retorna o aluno com os objetos `turma` e `responsavel` aninhados |
+| `GET` | `/alunos/:id/turma` | **Lazy Loading (Fluent API)** | Retorna apenas a turma do aluno via `findUnique({ where: { id } }).turma()` |
+| `GET` | `/alunos/:id/responsavel` | **Lazy Loading (Fluent API)** | Retorna apenas o responsável via `findUnique({ where: { id } }).responsavel()` |
+| `POST` | `/alunos` | `AuthGuard` + **Tratamento `P2003` (`400`)** | Cria aluno validando existência de `turmaId` e `responsavelId` |
+| `PUT` / `PATCH` | `/alunos/:id` | `AuthGuard` + **Tratamento `P2003` (`400`)** | Atualiza aluno |
+| `DELETE` | `/alunos/:id` | `AuthGuard` | Remove o aluno |
+
+---
+
+## Testando com o Postman
+
+A coleção oficial está em:
+```text
+tests/Postman/GerenciaKids.postman_collection.json
 ```
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+1. Abra o **Postman** e clique em **Import**.
+2. Selecione o arquivo `tests/Postman/GerenciaKids.postman_collection.json`.
+3. A coleção já vem configurada com as variáveis `{{baseUrl}}` (`http://localhost:3000`), `{{token}}` e variáveis auxiliares de IDs criados (`{{createdUserId}}`, `{{createdTurmaId}}`, `{{createdResponsavelId}}`, `{{createdAlunoId}}`).
+4. Execute a pasta **1. Auth (Login Admin)** (ou rode a coleção inteira em sequência no **Collection Runner**): o script de teste captura automaticamente o `access_token` de `res.data.access_token` e executa todos os cenários de CRUD, Eager Loading, Lazy Loading (Fluent API), filtros parametrizados, erros relacionais (`400` / `409`), bloqueio RBAC (`403`) e Logout.

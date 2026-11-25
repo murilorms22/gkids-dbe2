@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a93be22a-8db2-40e8-b3a7-45d9205ddf24",
     "name": "GerenciaKids API",
-    "description": "Coleção de testes da API GerenciaKids com variáveis e regras de perfil (Admin, Direção e Responsável).",
+    "description": "Coleção completa de testes da API GerenciaKids (Atividade 6) com Eager Loading, Lazy Loading via Fluent API, Filtros Parametrizados no MySQL, Tratamento de Erros Relacionais e RBAC.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -15,11 +15,31 @@
       "key": "token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "createdUserId",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "createdTurmaId",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "createdResponsavelId",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "createdAlunoId",
+      "value": "2",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "1. Autenticação",
+      "name": "1. Auth (Login Admin)",
       "item": [
         {
           "name": "Login - Admin",
@@ -28,6 +48,9 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
                   "const res = pm.response.json();",
                   "const token = res.data?.access_token ?? res.access_token;",
                   "if (token) { pm.collectionVariables.set('token', token); }"
@@ -55,7 +78,1252 @@
             }
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Usuários (/users)",
+      "item": [
+        {
+          "name": "Listar Usuários (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
         },
+        {
+          "name": "Ver Usuário #1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.collectionVariables.set('createdUserId', String(id)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Novo Usuário Teste\",\n  \"email\": \"novo.{{$timestamp}}@ifsul.edu.br\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Usuário (PUT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Usuário Atualizado PUT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{createdUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{createdUserId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Usuário (PATCH)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Usuário Atualizado PATCH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{createdUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{createdUserId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Usuário Criado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{createdUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{createdUserId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Turmas (/turmas)",
+      "item": [
+        {
+          "name": "Listar Turmas (Com _count de Alunos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Turmas (turno=Manhã&ano_letivo=2026)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas?turno=Manhã&ano_letivo=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas"],
+              "query": [
+                {
+                  "key": "turno",
+                  "value": "Manhã"
+                },
+                {
+                  "key": "ano_letivo",
+                  "value": "2026"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Turma #1 (Sem Alunos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Turma #1 (Eager Loading ?incluirAlunos=true)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1?incluirAlunos=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1"],
+              "query": [
+                {
+                  "key": "incluirAlunos",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Alunos da Turma #1 (Lazy Loading Fluent API)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1/alunos",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1", "alunos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Turma (Direção ou Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.collectionVariables.set('createdTurmaId', String(id)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Jardim II - Girassol\",\n  \"turno\": \"Tarde\",\n  \"ano_letivo\": \"2026\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turmas",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Turma (PUT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Jardim II - Atualizado PUT\",\n  \"turno\": \"Tarde\",\n  \"ano_letivo\": \"2026\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turmas/{{createdTurmaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "{{createdTurmaId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Turma (PATCH)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Jardim II - Atualizado PATCH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turmas/{{createdTurmaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "{{createdTurmaId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Turma #1 (Erro 409 - Possui Alunos Vinculados)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409 Conflict', () => {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Turma Criada (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/turmas/{{createdTurmaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas", "{{createdTurmaId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Responsáveis (/responsaveis)",
+      "item": [
+        {
+          "name": "Listar Responsáveis (Pública)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Responsável #1 (Sem Alunos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Responsável #1 (Eager Loading ?incluirAlunos=true)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1?incluirAlunos=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1"],
+              "query": [
+                {
+                  "key": "incluirAlunos",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Alunos do Responsável #1 (Lazy Loading Fluent API)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1/alunos",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1", "alunos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Responsável (Protegida)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.collectionVariables.set('createdResponsavelId', String(id)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Ana Paula Souza\",\n  \"cpf\": \"{{$timestamp}}9\",\n  \"telefone\": \"51988888888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Responsável (PUT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Ana Paula Atualizada PUT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/{{createdResponsavelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "{{createdResponsavelId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Responsável (PATCH)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Ana Paula Atualizada PATCH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/{{createdResponsavelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "{{createdResponsavelId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Responsável #1 (Erro 409 - Possui Aluno Vinculado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409 Conflict', () => {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Responsável Criado (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/responsaveis/{{createdResponsavelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["responsaveis", "{{createdResponsavelId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Alunos (/alunos)",
+      "item": [
+        {
+          "name": "Listar Alunos (Eager Loading turma e responsavel)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Alunos por Nome (?nome=Silva)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos?nome=Silva",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "Silva"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Alunos por Turma (?turmaId=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos?turmaId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"],
+              "query": [
+                {
+                  "key": "turmaId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Alunos Combinado (?nome=Silva&turmaId=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos?nome=Silva&turmaId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "Silva"
+                },
+                {
+                  "key": "turmaId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Alunos Inválido (?turmaId=abc -> 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', () => {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos?turmaId=abc",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"],
+              "query": [
+                {
+                  "key": "turmaId",
+                  "value": "abc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Aluno #1 (Eager Loading)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Turma do Aluno #1 (Lazy Loading Fluent API)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos/1/turma",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "1", "turma"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Responsável do Aluno #1 (Lazy Loading Fluent API)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/alunos/1/responsavel",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "1", "responsavel"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Aluno (Protegida)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.collectionVariables.set('createdAlunoId', String(id)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mariazinha da Silva\",\n  \"data_nascimento\": \"2022-04-12\",\n  \"turmaId\": 1,\n  \"responsavelId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alunos",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Aluno (PUT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mariazinha Atualizada PUT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alunos/{{createdAlunoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "{{createdAlunoId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Aluno (PATCH)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mariazinha Atualizada PATCH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alunos/{{createdAlunoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "{{createdAlunoId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Aluno Criado (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/alunos/{{createdAlunoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["alunos", "{{createdAlunoId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Permissões (RBAC) e Logout",
+      "item": [
         {
           "name": "Login - Direção (Papel de Gerente)",
           "event": [
@@ -63,6 +1331,9 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
                   "const res = pm.response.json();",
                   "const token = res.data?.access_token ?? res.access_token;",
                   "if (token) { pm.collectionVariables.set('token', token); }"
@@ -98,6 +1369,9 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
                   "const res = pm.response.json();",
                   "const token = res.data?.access_token ?? res.access_token;",
                   "if (token) { pm.collectionVariables.set('token', token); }"
@@ -127,7 +1401,59 @@
           "response": []
         },
         {
+          "name": "Criar Turma como Responsável (Bloqueio RBAC -> 403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403 Forbidden', () => {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Turma Não Autorizada\",\n  \"turno\": \"Manhã\",\n  \"ano_letivo\": \"2026\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turmas",
+              "host": ["{{baseUrl}}"],
+              "path": ["turmas"]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Logout (Revoga Token Atual)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -145,7 +1471,40 @@
           "response": []
         },
         {
-          "name": "Logout (Revoga Todos os Tokens)",
+          "name": "Logout (Revoga Todos os Tokens ?all=true)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify({ email: 'responsavel@ifsul.edu.br', senha: '123456' }) }",
+                  "}, (err, res) => {",
+                  "    if (!err && res) {",
+                  "        const json = res.json();",
+                  "        const t = json.data?.access_token ?? json.access_token;",
+                  "        if (t) pm.collectionVariables.set('token', t);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 201', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -164,420 +1523,6 @@
                   "value": "true"
                 }
               ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "2. Usuários (Tabela User)",
-      "item": [
-        {
-          "name": "Listar Usuários (Apenas Admin)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Ver Próprio Perfil",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Criar Usuário",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Novo Usuário\",\n  \"email\": \"novo@ifsul.edu.br\",\n  \"senha\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Atualizar Próprio Perfil",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Nome Atualizado\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Excluir Próprio Perfil",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/users/3",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "3"]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "3. Turmas (Recurso Irrestrito da Direção e Admin)",
-      "item": [
-        {
-          "name": "Listar Turmas (Pública)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/turmas",
-              "host": ["{{baseUrl}}"],
-              "path": ["turmas"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Ver Turma (Pública)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/turmas/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["turmas", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Criar Turma (Direção ou Admin)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Jardim 2\",\n  \"turno\": \"Tarde\",\n  \"ano_letivo\": \"2026\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/turmas",
-              "host": ["{{baseUrl}}"],
-              "path": ["turmas"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Atualizar Turma (Direção ou Admin)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Jardim 2 Atualizado\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/turmas/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["turmas", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Excluir Turma (Direção ou Admin)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/turmas/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["turmas", "1"]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "4. Alunos",
-      "item": [
-        {
-          "name": "Listar Alunos (Pública)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/alunos",
-              "host": ["{{baseUrl}}"],
-              "path": ["alunos"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Ver Aluno (Pública)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/alunos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["alunos", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Criar Aluno (Protegida)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Mariazinha\",\n  \"data_nascimento\": \"2021-04-12\",\n  \"turmaId\": 1,\n  \"responsavelId\": 1\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/alunos",
-              "host": ["{{baseUrl}}"],
-              "path": ["alunos"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Atualizar Aluno (Protegida)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Mariazinha Atualizada\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/alunos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["alunos", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Excluir Aluno (Protegida)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/alunos/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["alunos", "1"]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "5. Responsáveis",
-      "item": [
-        {
-          "name": "Listar Responsáveis (Pública)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/responsaveis",
-              "host": ["{{baseUrl}}"],
-              "path": ["responsaveis"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Ver Responsável (Pública)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/responsaveis/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["responsaveis", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Criar Responsável (Protegida)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Ana Paula Souza\",\n  \"cpf\": \"98765432100\",\n  \"telefone\": \"51988888888\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/responsaveis",
-              "host": ["{{baseUrl}}"],
-              "path": ["responsaveis"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Atualizar Responsável (Protegida)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Ana Paula Atualizada\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/responsaveis/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["responsaveis", "1"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Excluir Responsável (Protegida)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/responsaveis/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["responsaveis", "1"]
             }
           },
           "response": []

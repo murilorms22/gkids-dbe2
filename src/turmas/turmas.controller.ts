@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Put, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { TurmasService } from './turmas.service';
 import { CreateTurmaDto } from './dto/create-turma.dto';
 import { UpdateTurmaDto } from './dto/update-turma.dto';
+import { FilterTurmaDto } from './dto/filter-turma.dto';
 import { TurmaByIdPipe } from './turma-by-id.pipe';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -23,13 +24,24 @@ export class TurmasController {
   }
 
   @Get()
-  findAll() {
-    return this.turmasService.findAll();
+  findAll(@Query() filters?: FilterTurmaDto) {
+    return this.turmasService.findAll(filters);
   }
 
   @Get(':id')
-  findOne(@Param('id', TurmaByIdPipe) turma: any) {
+  findOne(
+    @Param('id', TurmaByIdPipe) turma: any,
+    @Query('incluirAlunos') incluirAlunos?: string,
+  ) {
+    if (incluirAlunos === 'true') {
+      return this.turmasService.findOne(turma.id, true);
+    }
     return turma;
+  }
+
+  @Get(':id/alunos')
+  findAlunos(@Param('id', ParseIntPipe) id: number) {
+    return this.turmasService.findAlunos(id);
   }
 
   @Roles('DIRECAO', 'GERENTE')
