@@ -139,14 +139,31 @@ Além dos registros gerados via Faker (**+4 turmas**, **+10 responsáveis** e **
 
 ---
 
-## Testando com o Postman
+## Testando com o Postman (Atividade 6)
 
-A coleção oficial está em:
+A coleção oficial completa de testes está localizada em:
 ```text
 tests/Postman/GerenciaKids.postman_collection.json
 ```
 
-1. Abra o **Postman** e clique em **Import**.
-2. Selecione o arquivo `tests/Postman/GerenciaKids.postman_collection.json`.
-3. A coleção já vem configurada com as variáveis `{{baseUrl}}` (`http://localhost:3000`), `{{token}}` e variáveis auxiliares de IDs criados (`{{createdUserId}}`, `{{createdTurmaId}}`, `{{createdResponsavelId}}`, `{{createdAlunoId}}`).
-4. Execute a pasta **1. Auth (Login Admin)** (ou rode a coleção inteira em sequência no **Collection Runner**): o script de teste captura automaticamente o `access_token` de `res.data.access_token` e executa todos os cenários de CRUD, Eager Loading, Lazy Loading (Fluent API), filtros parametrizados, erros relacionais (`400` / `409`), bloqueio RBAC (`403`) e Logout.
+### Como importar no Postman:
+1. Abra o **Postman** e clique em **Import** (ou pressione `Ctrl + O`).
+2. Selecione ou arraste o arquivo `tests/Postman/GerenciaKids.postman_collection.json`.
+3. A coleção **GerenciaKids API** será adicionada com as variáveis já embutidas (`{{baseUrl}}` apontando para `http://localhost:3000`, `{{token}}` dinâmico e variáveis auxiliares de IDs).
+
+### Formas de Execução:
+
+#### Opção A — Execução Automatizada em 1 Clique (Collection Runner - Recomendado):
+1. No menu lateral do Postman, clique com o botão direito na coleção **GerenciaKids API** e escolha **"Run collection"**.
+2. Clique no botão azul **"Run GerenciaKids API"**.
+3. **O que acontece automaticamente:**
+   - A coleção executa todas as requisições em ordem lógica.
+   - O login captura o token JWT e popula a variável `{{token}}` dinamicamente.
+   - As criações capturam os IDs gerados (`{{createdTurmaId}}`, `{{createdAlunoId}}`, etc.) e os utilizam nas requisições subsequentes de atualização e exclusão.
+   - São executados testes automatizados de **Eager Loading**, **Lazy Loading (Fluent API)**, **Filtros MySQL**, **Erros de Integridade Relacional (`409 Conflict` e `400 Bad Request`)**, **Controle de Acesso RBAC/Ability (`403 Forbidden`)** e **Revogação de Tokens**.
+   - Todos os testes passarão com status verde (**PASS**).
+
+#### Opção B — Testes Manuais de Rotas Individuais:
+1. Caso queira testar requisições específicas avulsas, basta executar primeiro o `Send` na rota **`1. Auth (Login Admin) -> Login - Admin`**.
+2. O script de teste armazenará o token na variável `{{token}}`.
+3. A partir desse momento, qualquer requisição protegida que você abrir e enviar (`Send`) já estará automaticamente autenticada via `Bearer {{token}}`, sem necessidade de copiar ou colar tokens manualmente.
